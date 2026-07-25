@@ -264,12 +264,37 @@ def get_er_setup(frecs, S11_medido, s11_agua, s11_abierto, s11_isopropilico, s11
   # print("X ", X)
   # print("Z ", Z)
   # print("Gn ", Gn)
-
+  """
   for n in range(len(frecs)):
     def equation(Em, Gn, Er_agua, X, Z, n):
         return Em + Gn[n] * (Em**(5/2)) + (Er_agua[n] + Gn[n] * (Er_agua[n]**(5/2))) * X[n] + (1 + Gn[n]) * Z[n]
 
     # solEm.append(fsolve(equation, initial_guess, args=(Gn, Er_agua, X, Z, n)))
     solEm.append(np.real(fsolve(equation, initial_guess, args=(Gn, Er_agua, X, Z, n))))
+    """
+  for n in range(len(frecs)):
+
+    def equation_complex(x):
+        Em = x[0] + 1j*x[1]
+
+        result = (
+            Em
+            + Gn[n] * (Em**(5/2))
+            + (Er_agua[n] + Gn[n] * (Er_agua[n]**(5/2))) * X[n]
+            + (1 + Gn[n]) * Z[n]
+        )
+
+        return [
+            np.real(result),
+            np.imag(result)
+        ]
+
+    sol = fsolve(
+        equation_complex,
+        [1, 0]
+    )
+
+    Em = sol[0] + 1j*sol[1]
+    solEm.append(Em)
   return solEm
 

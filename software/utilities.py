@@ -115,5 +115,32 @@ def plot_er(frecs, er, title, output_file):
 
     plt.savefig(output_file, dpi=300, bbox_inches='tight')
 
+def plot_er_comparison(frecs, er_1, name_er1, er_2, name_er2, title, output_file):
+    frecs_MHz = frecs / 1e6
+
+    plt.figure()
+    manager = plt.get_current_fig_manager()
+    manager.window.state('zoomed')
+
+    plt.plot(frecs_MHz, np.real(er_1), label='Parte Real - ' + name_er1)
+    plt.plot(frecs_MHz, np.imag(er_1), label='Parte Imaginaria - ' + name_er1)
+
+    plt.plot(frecs_MHz, np.real(er_2), '--', label='Parte Real - ' + name_er2)
+    plt.plot(frecs_MHz, np.imag(er_2), '--', label='Parte Imaginaria - ' + name_er2)
+
+    plt.title(title)
+    plt.xlabel('Frecuencia (MHz)')
+    plt.ylabel('Er')
+
+    ax = plt.gca()
+    plt.xscale('log')
+    ax.xaxis.set_major_formatter(ScalarFormatter())
+
+    plt.legend()
+    plt.grid(True, which='major', linewidth=1)
+    plt.grid(True, which='minor', linewidth=0.4)
+
+    plt.savefig(output_file, dpi=300, bbox_inches='tight')    
+
 def show_plots():
     plt.show()
