@@ -34,24 +34,41 @@ A partir de estas mediciones se obtiene la permitividad relativa del material en
 ## Estructura del proyecto
 
 ```
-├── main.py
-├── modelos.py
-├── vna.py
+.
+├── software/
+│   ├── main.py
+│   ├── utilities.py
+|   ├── data_procesing.py
+│   └── modelos.py
 ├── measurements/
+│   └── dd-MM-yy/
+│       ├── AIRE.s1p
+│       ├── SHORT.s1p
+│       ├── AGUA_DEST.s1p
+│       └── MUESTRA_ZZZ.s1p
 └── results/
+|   └── dd-MM-yy/
+|       ├── er_agua.png
+|       ├── er_muestra_ZZZ.png
+|       └── permitividades.xlsx
 ```
 
 ## Dependencias
 
-- Python 3.x
-- NumPy
-- SciPy
-- Matplotlib
+El proyecto utiliza Python 3 y las siguientes librerías:
+
+- **NumPy**: procesamiento de arreglos, operaciones matemáticas y manejo de números complejos.
+- **SciPy**: resolución de ecuaciones y métodos numéricos utilizados en los cálculos de permitividad.
+- **Matplotlib**: generación de gráficos de la permitividad relativa en función de la frecuencia.
+- **Pandas**: generación y exportación de resultados a archivos Excel.
+- **OpenPyXL**: soporte para la creación y escritura de archivos Excel.
+
+Instalación de dependencias:
 
 Instalar dependencias:
 
 ```bash
-pip install numpy scipy matplotlib
+pip install numpy scipy matplotlib pandas openpyxl
 ```
 
 ## Uso
@@ -59,8 +76,9 @@ pip install numpy scipy matplotlib
 Ejecutar:
 
 ```bash
-python main.py
-```
+python main.py <fecha_medicion>
+// Ejemplo
+python main.py 24-06-26```
 
 El programa procesa los archivos de medición obtenidos del VNA y calcula la permitividad del material analizado.
 
@@ -78,13 +96,9 @@ Ejemplos de formatos soportados:
 
 ```
 # Hz S DB R 50
-```
 
-```
 # HZ S MA R 50
-```
 
-```
 # HZ S RI R 50
 ```
 

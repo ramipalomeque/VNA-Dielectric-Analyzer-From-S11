@@ -1,16 +1,10 @@
-import os
 import numpy as np
-import matplotlib.pyplot as plt
-import cmath
-from datetime import datetime
 from scipy.optimize import fsolve
+from pathlib import Path
+
 # !pip install git+https://github.com/dpk2442/pysmith.git#egg=pysmith
 
-from modelos import (
-    get_debye_model,
-    get_er_pat_alc_etilico,
-    get_er_pat_alc_isopropilico,
-)
+import modelos as mdls
 
 ##
 # @brief Procesa un archivo Touchstone (.s1p) obtenido del VNA.
@@ -30,44 +24,45 @@ from modelos import (
 #         - Frec: frecuencias medidas.
 #         - Complex: valores complejos de S11.
 ##
-def vna_proc_file(file_path, file_name): #Procesa archivos S1P de VNA
-    if file_name.endswith('.csv'):
-      print('Formato de CSV no soportado todavia')
-      return
+def vna_proc_file(file_path, file_name):
 
-    header_start  = '#'
-    data_start    = '!'
+    file_path = Path(file_path) / file_name
+
+    if file_name.endswith('.csv'):
+        print('Formato de CSV no soportado todavia')
+        return
+
     out_dict = {
-                'Date'   : '',
-                'Data'   : [],
-                'Index'  : [],
-                'Frec'   : [],
-                'Complex': [],
-              }
+        'Date'   : '',
+        'Data'   : [],
+        'Index'  : [],
+        'Frec'   : [],
+        'Complex': [],
+    }
 
     frecuencies = np.array([])
     complejos   = np.array([])
-    phase       = np.array([])
     reals       = np.array([])
     imgs        = np.array([])
 
-    if ( file_path[-1] != '/' ):
-      file_path += '/'
-    file_path += file_name
     try:
         file = open(file_path, "r")
     except:
-        print('TODO: No se puede abrir')
-        print(file_name)
-        return 404
+        raise ValueError("Archivo S1P inválido: no se pudo abrir el archivo " + file_path)
+
     file_list = file.readlines()
-    # print(file_list)
     file.close()
+
+    # Buscar línea de formato (# Hz S DB/RI/MA...)
+    header_index = None
 
     for i, line in enumerate(file_list):
         if line.startswith('#'):
             header_index = i
             break
+
+    if header_index is None:
+        raise ValueError("Archivo S1P inválido: no se encontró header de formato (#)")
 
     headers = file_list[header_index][2:].upper().split()
 
@@ -77,45 +72,33 @@ def vna_proc_file(file_path, file_name): #Procesa archivos S1P de VNA
         #Dependiendo el modo del VNA graba los archivos en "MOdulo y Fase" o en "Parte Real e imaginaria"
 
         if (headers[1]=='S') and (headers[2]=='DB'):
-          complejos = np.append(complejos, convertir_a_rectangular(np.float32(values[1]), np.float32(values[2])))
+          modulo = 10 ** (np.float32(values[1]) / 20)
+          fase = np.radians(np.float32(values[2]))
+          complejos = np.append(complejos,modulo * np.exp(1j * fase))
+
         elif  (headers[1]=='S') and (headers[2]=='RI') :
           reals     = np.append(reals, np.float32(values[1]))
           imgs      = np.append(imgs, np.float32(values[2]))
           complejos = reals +1j*imgs
+
         elif (headers[1]=='S') and (headers[2] == 'MA'):
           modulo = np.float32(values[1])
-          fase = np.float32(values[2])
-          complejos = np.append(complejos,modulo * np.exp(1j * np.radians(fase))
-    )
+          fase = np.radians(np.float32(values[2]))
+          complejos = np.append(complejos,modulo * np.exp(1j * fase))
 
-    out_dict['Date'   ] = file_list[1][5:]
-    out_dict['Data'   ] = file_list[0:11]
-    out_dict['Index'  ] = headers
-    out_dict['Frec'   ] = frecuencies
+    date = ""
+    for line in file_list:
+        if "DATE" in line.upper():
+            date = line.split(":", 1)[1].strip()
+            break
+
+    out_dict['Date']    = date
+    out_dict['Data']    = file_list[:header_index]
+    out_dict['Index']   = headers
+    out_dict['Frec']    = frecuencies
     out_dict['Complex'] = complejos
 
     return out_dict
-
-##
-# @brief Convierte un valor expresado en magnitud y fase a un número complejo.
-#
-# Convierte un coeficiente de reflexión representado mediante magnitud en
-# decibeles (dB) y fase en grados a su equivalente en coordenadas
-# rectangulares (parte real e imaginaria).
-#
-# Esta función se utiliza durante el procesamiento de archivos S1P cuando
-# las mediciones del VNA se encuentran almacenadas en formato DB (Magnitud/Fase).
-#
-# @param modulo_db Magnitud del coeficiente de reflexión en decibeles (dB).
-# @param fase_grados Fase del coeficiente de reflexión en grados.
-#
-# @return Número complejo equivalente al valor de entrada.
-##
-def convertir_a_rectangular(modulo_db, fase_grados):
-    modulo        = 10 ** (modulo_db / 20)
-    fase_radianes = np.radians(fase_grados)
-
-    return modulo * np.exp(1j * fase_radianes)
 
 ##
 # @brief Convierte el parámetro S11 en el parámetro de admitancia Y11.
@@ -224,7 +207,7 @@ def Resample_S11 (smaller_set, data):
 # @return Vector con la permitividad relativa compleja estimada.
 ##
 def get_er_DUTm (frecs, S11_medido, S11_agua, S11_aire, S11_corto):
-  Er_agua = get_debye_model(frecs)
+  Er_agua = mdls.get_debye_model(frecs)
 
   A  = ( (S11_medido - S11_agua)*(S11_aire - S11_corto) ) / ( (S11_medido - S11_corto)*(S11_agua - S11_aire))
   ER =-( ( (S11_medido - S11_aire)*(S11_corto - S11_agua) ) / ( (S11_medido - S11_corto)*(S11_agua - S11_aire) ) )*Er_agua
@@ -252,8 +235,8 @@ def get_er_setup(frecs, S11_medido, s11_agua, s11_abierto, s11_isopropilico, s11
   r_corto   = s11_corto
   r_alcohol = s11_isopropilico
 
-  Er_agua    = get_debye_model(frecs)
-  Er_alcohol = get_er_pat_alc_isopropilico(frecs);
+  Er_agua    = mdls.get_debye_model(frecs)
+  Er_alcohol = mdls.get_er_pat_alc_isopropilico(frecs);
   solEm      = []
 
   # Calculation of ER for each frequency point
@@ -289,3 +272,4 @@ def get_er_setup(frecs, S11_medido, s11_agua, s11_abierto, s11_isopropilico, s11
     # solEm.append(fsolve(equation, initial_guess, args=(Gn, Er_agua, X, Z, n)))
     solEm.append(np.real(fsolve(equation, initial_guess, args=(Gn, Er_agua, X, Z, n))))
   return solEm
+
