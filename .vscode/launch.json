@@ -8,7 +8,8 @@
             "program": "${workspaceFolder}/software/main.py",
             "console": "integratedTerminal",
             "args": [
-                "22-02-24"
+                //"22-02-24"
+                "24-06-26"
             ]
         }
     ]

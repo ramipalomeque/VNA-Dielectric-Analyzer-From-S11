@@ -78,7 +78,8 @@ Ejecutar:
 ```bash
 python main.py <fecha_medicion>
 // Ejemplo
-python main.py 24-06-26```
+python main.py 24-06-26
+```
 
 El programa procesa los archivos de medición obtenidos del VNA y calcula la permitividad del material analizado.
 
@@ -112,7 +113,3 @@ Actualmente incluye:
 - Conversión de formatos de medición.
 - Procesamiento de parámetros S11.
 - Cálculo de permitividad mediante mediciones de calibración.
-
-## Autor
-
-Proyecto de caracterización electromagnética de materiales mediante VNA y sonda coaxial abierta.
