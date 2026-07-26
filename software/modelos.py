@@ -10,7 +10,7 @@ import numpy as np
 #
 # @return Vector con la permitividad relativa compleja del agua.
 ##
-def get_debye_model(frecs): #Patron agua destilada
+def get_debye_model(frecs): 
     w     = frecs*2*np.pi
     E_inf = 4.6
     E_s   = 78.3

@@ -64,6 +64,7 @@ s11_agua_dest = dp.vna_proc_file(measurement_path, files["agua_dest"])
 s11_short = dp.vna_proc_file(measurement_path, files["short"])
 s11_isopropilico = dp.vna_proc_file(measurement_path, files["alc_isp"])
 
+
 # ============================================================================
 # Lectura de muestras
 # ============================================================================
@@ -148,7 +149,7 @@ print("Resultados guardados en " + str(result_path))
 # ============================================================================
 # Gráfico
 # ============================================================================
-
+"""
 utl.plot_er_comparison(
     frecs,
     er_agua,
@@ -188,8 +189,42 @@ for muestra, muestra_calibrada in zip(er_muestras, er_muestras_calibradas):
             f"Real and Imaginary Parts of Er {muestra['name']}",
             result_path / f"er_{muestra['name']}.png"
         )
+"""
+utl.plot_s11(
+    frecs,
+    s11_aire["Complex"],
+    "S11 Aire",
+    result_path / "s11_aire.png"
+)
 
+utl.plot_s11(
+    frecs,
+    s11_agua_dest["Complex"],
+    "S11 Agua Destilada",
+    result_path / "s11_agua.png"
+)
 
+utl.plot_s11(
+    frecs,
+    s11_short["Complex"],
+    "S11 Short",
+    result_path / "s11_short.png"
+)
+
+utl.plot_s11(
+    frecs,
+    s11_isopropilico["Complex"],
+    "S11 Alcohol Isopropílico",
+    result_path / "s11_isopropilico.png"
+)
+
+for muestra in s11_muestras:
+    utl.plot_s11(
+        frecs,
+        muestra["data"]["Complex"],
+        f"S11 {muestra['name']}",
+        result_path / f"s11_{muestra['name']}.png"
+    )
 
 utl.show_plots()
 

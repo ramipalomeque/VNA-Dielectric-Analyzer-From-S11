@@ -142,5 +142,29 @@ def plot_er_comparison(frecs, er_1, name_er1, er_2, name_er2, title, output_file
 
     plt.savefig(output_file, dpi=300, bbox_inches='tight')    
 
+def plot_s11(frecs, s11, title, output_file):
+    frecs_MHz = frecs / 1e6
+
+    plt.figure()
+    manager = plt.get_current_fig_manager()
+    manager.window.state('zoomed')
+
+    plt.plot(frecs_MHz, np.real(s11), label='Parte Real')
+    plt.plot(frecs_MHz, np.imag(s11), label='Parte Imaginaria')
+
+    plt.title(title)
+    plt.xlabel('Frecuencia (MHz)')
+    plt.ylabel('S11')
+
+    ax = plt.gca()
+    plt.xscale('log')
+    ax.xaxis.set_major_formatter(ScalarFormatter())
+
+    plt.legend()
+    plt.grid(True, which='major', linewidth=1)
+    plt.grid(True, which='minor', linewidth=0.4)
+
+    plt.savefig(output_file, dpi=300, bbox_inches='tight')
+    
 def show_plots():
     plt.show()
