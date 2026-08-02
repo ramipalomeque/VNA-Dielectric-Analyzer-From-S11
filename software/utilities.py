@@ -53,7 +53,6 @@ def parse_measurement_date(date_str):
     )
 
 
-
 ##
 # @brief Exporta datos complejos utilizando una hoja template de Excel.
 #
@@ -85,7 +84,6 @@ def export_complex_to_excel(frecs, complex_values, sheet_name, wb):
         ws.cell(index, 1).value = freq
         ws.cell(index, 2).value = np.real(value)
         ws.cell(index, 3).value = np.imag(value)
-
 
 def open_workbook(file_path):
     return load_workbook(file_path)
@@ -147,6 +145,28 @@ def plot_s11(frecs, s11, title, output_file):
 
     plt.savefig(output_file, dpi=300, bbox_inches='tight')
 
+##
+# @brief Grafica el parámetro S11 de una lista de mediciones.
+#
+# Genera un gráfico comparativo del parámetro S11 en función de la frecuencia
+# para múltiples mediciones. Permite visualizar diferentes respuestas de la
+# sonda o materiales bajo prueba en un mismo gráfico.
+#
+# Cada medición se representa utilizando el módulo y la fase del parámetro S11.
+# El gráfico utiliza escala logarítmica en frecuencia y permite guardar la
+# imagen generada en un archivo.
+#
+# @param frecs Vector de frecuencias en Hz.
+# @param s11s Lista de diccionarios con las mediciones S11.
+#        Cada elemento debe contener:
+#        - name: Nombre de la medición.
+#        - s11: Vector complejo correspondiente al parámetro S11.
+# @param title Título del gráfico.
+# @param output_file Ruta del archivo donde se guardará la imagen generada.
+#        Si es None, solamente se muestra el gráfico.
+#
+# @return None.
+##
 def plot_er_list(frecs, ers, title, output_file = None):
     frecs_MHz = frecs / 1e6
 
@@ -178,6 +198,28 @@ def plot_er_list(frecs, ers, title, output_file = None):
     if output_file is not None:
         plt.savefig(output_file, dpi=300, bbox_inches='tight') 
 
+##
+# @brief Grafica el parámetro S11 de una lista de mediciones.
+#
+# Genera un gráfico comparativo del parámetro S11 en función de la frecuencia
+# para múltiples mediciones. Permite visualizar diferentes respuestas de la
+# sonda o materiales bajo prueba en un mismo gráfico.
+#
+# Cada medición se representa utilizando el módulo y la fase del parámetro S11.
+# El gráfico utiliza escala logarítmica en frecuencia y permite guardar la
+# imagen generada en un archivo.
+#
+# @param frecs Vector de frecuencias en Hz.
+# @param s11s Lista de diccionarios con las mediciones S11.
+#        Cada elemento debe contener:
+#        - name: Nombre de la medición.
+#        - s11: Vector complejo correspondiente al parámetro S11.
+# @param title Título del gráfico.
+# @param output_file Ruta del archivo donde se guardará la imagen generada.
+#        Si es None, solamente se muestra el gráfico.
+#
+# @return None.
+##
 def plot_s11_list(frecs, s11s, title, output_file = None):
     frecs_MHz = frecs / 1e6
 

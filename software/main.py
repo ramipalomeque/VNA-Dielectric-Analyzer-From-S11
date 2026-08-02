@@ -3,8 +3,6 @@ from pathlib import Path
 import data_processing as dp
 import utilities as utl
 import modelos as mdls
-from shutil import copy2
-
 
 
 def get_s11_references(messurement_path):
@@ -48,9 +46,9 @@ def parse_arguments():
 # ============================================================================
 
 def main():
-    plot_er     = False
+    plot_er     = True
     plot_s11    = False
-    save_s11    = True
+    save_s11    = False
     save_er     = False
 
     args = parse_arguments()
@@ -325,8 +323,8 @@ def main():
                 {"name": "Alcohol etilico simulado", "s11": s11_data["sample"]["Complex"]},
                 {"name": "Alcohol etilico de referencia", "s11": s11_references["alc_eth"]["Complex"]},
             ],
-            "S11 DUT",
-            result_path / "s11_dut.png",
+            "S11 MUT",
+            result_path / "s11_mut.png",
         )
 
     # ============================================================================
@@ -359,14 +357,14 @@ def main():
         utl.plot_er_list(
             frecs,
             [
-                #{"name": "DUT simulado", "er": er_sample},
-                {"name": "DUT calibrado", "er": er_sample_cal},
-                #{"name": "DUT de referencia", "er": er_sample_ref},
-                {"name": "DUT de referencia calibrado", "er": er_sample_cal_ref},
-                {"name": "DUT teorico", "er": mdls.get_er_pat_alc_etilico(frecs)},
+                #{"name": "MUT simulado", "er": er_sample},
+                {"name": "MUT calibrado", "er": er_sample_cal},
+                #{"name": "MUT de referencia", "er": er_sample_ref},
+                {"name": "MUT de referencia calibrado", "er": er_sample_cal_ref},
+                {"name": "MUT teorico", "er": mdls.get_er_pat_alc_etilico(frecs)},
             ],
-            "Er DUT",
-            result_path / "er_dut.png",
+            "Er MUT",
+            result_path / "er_mut.png",
         )
 
     utl.show_plots()
