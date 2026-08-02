@@ -1,8 +1,10 @@
 from datetime import datetime
-import pandas as pd
+from openpyxl import load_workbook
 import numpy as np
+
 import matplotlib.pyplot as plt
 from matplotlib.ticker import ScalarFormatter
+
 ##
 # @brief Valida y normaliza una fecha de medición.
 #
@@ -12,7 +14,7 @@ from matplotlib.ticker import ScalarFormatter
 # Formatos aceptados:
 # - dd-MM-yy
 # - dd/MM/yy
-# - dd-MM-yyyy
+# - dd-MM-yyyyclar
 # - dd/MM/yyyy
 # - yyyy-MM-dd
 # - yyyy/MM/dd
@@ -50,47 +52,52 @@ def parse_measurement_date(date_str):
         "24-11-26, 24/11/2026, 2026-11-24."
     )
 
+
+
 ##
-# @brief Exporta las permitividades calculadas a un archivo Excel.
+# @brief Exporta datos complejos utilizando una hoja template de Excel.
 #
-# Genera un archivo Excel con una hoja para la permitividad del agua
-# destilada y una hoja adicional para cada material analizado. Cada hoja
-# contiene la frecuencia, la parte real y la parte imaginaria de la
-# permitividad relativa compleja (εr).
+# Copia la hoja base "Hoja1" del template, la renombra con el nombre indicado
+# y completa los datos de frecuencia, parte real y parte imaginaria.
 #
 # @param frecs Vector de frecuencias.
-# @param er_agua Vector de permitividad compleja del agua destilada.
-# @param er_muestras Lista de diccionarios con la información de cada muestra.
-#        Cada elemento debe tener la estructura:
-#        - name: nombre de la muestra.
-#        - er: vector de permitividad compleja.
-# @param output_path Ruta completa del archivo Excel a generar.
+# @param complex_values Vector de valores complejos.
+# @param sheet_name Nombre de la hoja destino.
+# @param output_path Archivo Excel resultado.
+# @param wb Objeto Excel.
 #
 # @return None.
 ##
-def export_er_to_excel(frecs, er_agua, er_muestras, output_path):
+def export_complex_to_excel(frecs, complex_values, sheet_name, wb):
 
-    with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
+    if "Hoja1" not in wb.sheetnames:
+        raise Exception("No existe la hoja template Hoja1")
 
-        # Hoja del agua
-        pd.DataFrame({
-            "Frecuencia (Hz)": frecs,
-            "Er Real": np.real(er_agua),
-            "Er Imag": np.imag(er_agua),
-        }).to_excel(writer, sheet_name="agua", index=False)
+    ws_template = wb["Hoja1"]
 
-        # Hojas de las muestras
-        for muestra in er_muestras:
-            pd.DataFrame({
-                "Frecuencia (Hz)": frecs,
-                "Er Real": np.real(muestra["er"]),
-                "Er Imag": np.imag(muestra["er"]),
-            }).to_excel(
-                writer,
-                sheet_name=muestra["name"][:31],  # Límite de Excel
-                index=False,
-            )
+    if sheet_name in wb.sheetnames:
+        del wb[sheet_name]
 
+    ws = wb.copy_worksheet(ws_template)
+    ws.title = sheet_name
+
+    for index, (freq, value) in enumerate(zip(frecs, complex_values), start=2):
+        ws.cell(index, 1).value = freq
+        ws.cell(index, 2).value = np.real(value)
+        ws.cell(index, 3).value = np.imag(value)
+
+
+def open_workbook(file_path):
+    return load_workbook(file_path)
+
+def save_workbook(file_path, wb):
+    ws = wb["Hoja1"]
+    wb.remove(ws)
+    wb.save(file_path)
+
+def close_workbook(wb):
+    wb.close()
+    
 def plot_er(frecs, er, title, output_file):
     frecs_MHz = frecs / 1e6
 
@@ -115,34 +122,8 @@ def plot_er(frecs, er, title, output_file):
 
     plt.savefig(output_file, dpi=300, bbox_inches='tight')
 
-def plot_er_comparison(frecs, er_1, name_er1, er_2, name_er2, title, output_file):
-    frecs_MHz = frecs / 1e6
-
-    plt.figure()
-    manager = plt.get_current_fig_manager()
-    manager.window.state('zoomed')
-
-    plt.plot(frecs_MHz, np.real(er_1), label='Parte Real - ' + name_er1)
-    plt.plot(frecs_MHz, np.imag(er_1), label='Parte Imaginaria - ' + name_er1)
-
-    plt.plot(frecs_MHz, np.real(er_2), '--', label='Parte Real - ' + name_er2)
-    plt.plot(frecs_MHz, np.imag(er_2), '--', label='Parte Imaginaria - ' + name_er2)
-
-    plt.title(title)
-    plt.xlabel('Frecuencia (MHz)')
-    plt.ylabel('Er')
-
-    ax = plt.gca()
-    plt.xscale('log')
-    ax.xaxis.set_major_formatter(ScalarFormatter())
-
-    plt.legend()
-    plt.grid(True, which='major', linewidth=1)
-    plt.grid(True, which='minor', linewidth=0.4)
-
-    plt.savefig(output_file, dpi=300, bbox_inches='tight')    
-
 def plot_s11(frecs, s11, title, output_file):
+    
     frecs_MHz = frecs / 1e6
 
     plt.figure()
@@ -165,6 +146,69 @@ def plot_s11(frecs, s11, title, output_file):
     plt.grid(True, which='minor', linewidth=0.4)
 
     plt.savefig(output_file, dpi=300, bbox_inches='tight')
-    
+
+def plot_er_list(frecs, ers, title, output_file = None):
+    frecs_MHz = frecs / 1e6
+
+    plt.figure(figsize=(16, 9), constrained_layout=True)
+    manager = plt.get_current_fig_manager()
+    manager.window.state('zoomed')  
+
+    for er in ers:
+        line, = plt.plot(frecs_MHz, np.real(er["er"]), label=f'{er["name"]} - Real')
+        plt.plot(frecs_MHz, np.imag(er["er"]),"--", color=line.get_color(), label=f'{er["name"]} - Imaginaria')
+
+    plt.title(title)
+    plt.xlabel('Frecuencia (MHz)')
+    plt.ylabel('Er')
+
+    ax = plt.gca()
+    plt.xscale('log')
+    ax.xaxis.set_major_formatter(ScalarFormatter())
+
+    plt.legend(
+            loc="upper left",
+            bbox_to_anchor=(1.02, 1),
+            ncol=1,
+            fontsize=12
+        )
+    plt.grid(True, which='major', linewidth=1)
+    plt.grid(True, which='minor', linewidth=0.4)
+
+    if output_file is not None:
+        plt.savefig(output_file, dpi=300, bbox_inches='tight') 
+
+def plot_s11_list(frecs, s11s, title, output_file = None):
+    frecs_MHz = frecs / 1e6
+
+    plt.figure(figsize=(16, 9), constrained_layout=True)
+    manager = plt.get_current_fig_manager()
+    manager.window.state('zoomed')
+
+    for s11 in s11s:
+        line, = plt.plot(frecs_MHz, np.real(s11["s11"]), label=f'{s11["name"]} - Real')
+        plt.plot(frecs_MHz, np.imag(s11["s11"]),"--", color=line.get_color(), label=f'{s11["name"]} - Imaginaria')
+
+    plt.title(title)
+    plt.xlabel('Frecuencia (MHz)')
+    plt.ylabel('S11')
+
+    ax = plt.gca()
+    plt.xscale('log')
+    ax.xaxis.set_major_formatter(ScalarFormatter())
+
+    plt.legend(
+        loc="upper left",
+        bbox_to_anchor=(1.02, 1),
+        ncol=1,
+        fontsize=12
+    )
+    plt.grid(True, which='major', linewidth=1)
+    plt.grid(True, which='minor', linewidth=0.4)
+   
+
+    if output_file is not None:
+        plt.savefig(output_file, dpi=300, bbox_inches='tight')
+
 def show_plots():
     plt.show()

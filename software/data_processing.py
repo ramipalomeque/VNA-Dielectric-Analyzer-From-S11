@@ -24,9 +24,9 @@ import modelos as mdls
 #         - Frec: frecuencias medidas.
 #         - Complex: valores complejos de S11.
 ##
-def vna_proc_file(file_path, file_name):
-
-    file_path = Path(file_path) / file_name
+def vna_proc_file(file_path):
+    file_path = Path(file_path)
+    file_name = file_path.name
 
     if file_name.endswith('.csv'):
         print('Formato de CSV no soportado todavia')
@@ -68,22 +68,29 @@ def vna_proc_file(file_path, file_name):
 
     for line in file_list[header_index + 1:]:
         values = line.strip().split()
-        frecuencies = np.append(frecuencies, np.float32(values[0]))
-        #Dependiendo el modo del VNA graba los archivos en "MOdulo y Fase" o en "Parte Real e imaginaria"
+        freq = np.float64(values[0])
+
+        if headers[0] == "GHZ":
+            freq *= 1e9
+        elif headers[0] == "MHZ":
+            freq *= 1e6
+        elif headers[0] == "KHZ":
+            freq *= 1e3   
+        frecuencies = np.append(frecuencies, freq)
 
         if (headers[1]=='S') and (headers[2]=='DB'):
-          modulo = 10 ** (np.float32(values[1]) / 20)
-          fase = np.radians(np.float32(values[2]))
+          modulo = 10 ** (np.float64(values[1]) / 20)
+          fase = np.radians(np.float64(values[2]))
           complejos = np.append(complejos,modulo * np.exp(1j * fase))
 
         elif  (headers[1]=='S') and (headers[2]=='RI') :
-          reals     = np.append(reals, np.float32(values[1]))
-          imgs      = np.append(imgs, np.float32(values[2]))
+          reals     = np.append(reals, np.float64(values[1]))
+          imgs      = np.append(imgs, np.float64(values[2]))
           complejos = reals +1j*imgs
 
         elif (headers[1]=='S') and (headers[2] == 'MA'):
-          modulo = np.float32(values[1])
-          fase = np.radians(np.float32(values[2]))
+          modulo = np.float64(values[1])
+          fase = np.radians(np.float64(values[2]))
           complejos = np.append(complejos,modulo * np.exp(1j * fase))
 
     date = ""
@@ -229,7 +236,7 @@ def get_er_DUTm (frecs, S11_medido, S11_agua, S11_aire, S11_corto):
 #
 # @return Vector con la conductancia calibrada en función de la frecuencia.
 ##
-def get_er_setup(frecs, S11_medido, s11_agua, s11_abierto, s11_isopropilico, s11_corto):
+def get_er_setup2(frecs, S11_medido, s11_agua, s11_abierto, s11_isopropilico, s11_corto):
   r_agua    = s11_agua
   r_aire    = s11_abierto
   r_corto   = s11_corto
@@ -298,3 +305,84 @@ def get_er_setup(frecs, S11_medido, s11_agua, s11_abierto, s11_isopropilico, s11
     solEm.append(Em)
   return solEm
 
+##
+# @brief Calcula la permitividad relativa utilizando una calibración
+#        con agua destilada y alcohol isopropílico.
+#
+# Resuelve numéricamente la ecuación del modelo calibrado para cada punto
+# de frecuencia empleando como referencias el aire, el cortocircuito,
+# el agua destilada y el alcohol isopropílico.
+#
+# @param frecs Vector de frecuencias.
+# @param S11_medido Parámetro S11 del material bajo prueba.
+# @param s11_agua Parámetro S11 del agua destilada.
+# @param s11_abierto Parámetro S11 del circuito abierto.
+# @param s11_isopropilico Parámetro S11 del alcohol isopropílico.
+# @param s11_corto Parámetro S11 del cortocircuito.
+#
+# @return Vector de permitividad relativa compleja en función de la frecuencia.
+##
+def get_er_setup(frecs, S11_medido, s11_agua, s11_abierto, s11_isopropilico, s11_corto):
+
+    Er_agua = mdls.get_debye_model(frecs)
+    Er_alcohol = mdls.get_er_pat_alc_isopropilico(frecs)
+
+    A = ((s11_isopropilico - s11_corto) * (s11_agua - s11_abierto) * Er_alcohol)
+    B = ((s11_isopropilico - s11_abierto) * (s11_corto - s11_agua) * Er_agua)
+    C = ((s11_isopropilico - s11_abierto) * (s11_abierto - s11_corto))
+
+    D = ((s11_isopropilico - s11_corto) * (s11_agua - s11_abierto) * (Er_alcohol ** (5 / 2)))
+    E = ((s11_isopropilico - s11_abierto) * (s11_corto - s11_agua) * (Er_agua ** (5 / 2)))
+    F = ((s11_isopropilico - s11_abierto) * (s11_abierto - s11_corto))
+
+    Gn = -(A + B + C) / (D + E + F)
+
+    X = (
+        (S11_medido - s11_abierto)
+        * (s11_corto - s11_agua)
+        / ((S11_medido - s11_corto) * (s11_agua - s11_abierto))
+    )
+
+    Z = (
+        (S11_medido - s11_agua)
+        * (s11_abierto - s11_corto)
+        / ((S11_medido - s11_corto) * (s11_agua - s11_abierto))
+    )
+
+    er = np.empty(len(frecs), dtype=complex)
+
+    guess = np.array([1.0, 0.0])
+
+    for n in range(len(frecs)):
+
+        def equation(x):
+            Em = x[0] + 1j * x[1]
+
+            value = (
+                Em
+                + Gn[n] * (Em ** (5 / 2))
+                + (Er_agua[n] + Gn[n] * (Er_agua[n] ** (5 / 2))) * X[n]
+                + (1 + Gn[n]) * Z[n]
+            )
+
+            return [
+                np.real(value),
+                np.imag(value),
+            ]
+
+        sol, info, ier, msg = fsolve(
+            equation,
+            guess,
+            full_output=True,
+        )
+
+        if ier != 1:
+            print(
+                f"Advertencia: fsolve no convergió en "
+                f"{frecs[n] / 1e6:.3f} MHz ({msg})"
+            )
+
+        guess = sol
+        er[n] = sol[0] + 1j * sol[1]
+
+    return er
