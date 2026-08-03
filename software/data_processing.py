@@ -221,6 +221,7 @@ def get_er_DUTm (frecs, S11_medido, S11_agua, S11_aire, S11_corto):
 
   return ER-A
 
+
 ##
 # @brief Calcula la respuesta calibrada del sistema de medición.
 #

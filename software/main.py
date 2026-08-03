@@ -46,10 +46,10 @@ def parse_arguments():
 # ============================================================================
 
 def main():
-    plot_er     = True
+    plot_er     = False
     plot_s11    = False
-    save_s11    = False
-    save_er     = False
+    save_s11    = True
+    save_er     = True
 
     args = parse_arguments()
 
@@ -212,57 +212,59 @@ def main():
         print(f"Parametros S11 guardados en {result_s11}")
 
     if save_er:
-        with pd.ExcelWriter(result_er, engine="openpyxl") as writer:
-            utl.export_complex_to_excel(
+        wb = utl.open_workbook(template_path)
+        utl.export_complex_to_excel(
+        frecs,
+        er_agua,
+        "ER agua",
+        wb,
+        )
+        utl.export_complex_to_excel(
             frecs,
-            er_agua,
-            "ER agua",
-            writer,
-            )
-            utl.export_complex_to_excel(
-                frecs,
-                er_alc_isp,
-                "ER alc_isp",
-                writer,
-            )
-            utl.export_complex_to_excel(
-                frecs,
-                er_alc_isp_ref,
-                "ER alc_isp_ref",
-                writer,
-            )
-            utl.export_complex_to_excel(
-                frecs,
-                mdls.get_er_pat_alc_isopropilico(frecs),
-                "ER alc_isp_pat",
-                writer,
-            )
-            
-            utl.export_complex_to_excel(
-                frecs,
-                er_sample_cal,
-                "ER sample_cal",
-                writer,
-            )
-            utl.export_complex_to_excel(
-                frecs,
-                er_sample_cal_ref,
-                "ER sample_cal_ref",
-                writer,
-            )
+            er_alc_isp,
+            "ER alc_isp",
+            wb,
+        )
+        utl.export_complex_to_excel(
+            frecs,
+            er_alc_isp_ref,
+            "ER alc_isp_ref",
+            wb,
+        )
+        utl.export_complex_to_excel(
+            frecs,
+            mdls.get_er_pat_alc_isopropilico(frecs),
+            "ER alc_isp_pat",
+            wb,
+        )
+        
+        utl.export_complex_to_excel(
+            frecs,
+            er_sample_cal,
+            "ER sample_cal",
+            wb,
+        )
+        utl.export_complex_to_excel(
+            frecs,
+            er_sample_cal_ref,
+            "ER sample_cal_ref",
+            wb,
+        )
 
-            utl.export_complex_to_excel(
-                frecs,
-                mdls.get_er_pat_alc_etilico(frecs),
-                "ER alc_eth_pat",
-                writer,
-            )
-            utl.export_complex_to_excel(
-                frecs,
-                er_sample_ref,
-                "ER sample_ref",
-                writer,
-            )
+        utl.export_complex_to_excel(
+            frecs,
+            mdls.get_er_pat_alc_etilico(frecs),
+            "ER alc_eth_pat",
+            wb,
+        )
+        utl.export_complex_to_excel(
+            frecs,
+            er_sample_ref,
+            "ER sample_ref",
+            wb,
+        )
+        utl.save_workbook(result_er,wb)
+        utl.close_workbook(wb)
 
         print(f"Parametros permitividades guardados en {result_er}")
 
@@ -330,7 +332,13 @@ def main():
     # ============================================================================
     # Gráficos de er
     # ============================================================================
-    
+    er_alc_isp = dp.get_er_DUTm (
+                    frecs,
+                    s11_data['alc_isp']['Complex'], 
+                    s11_data['agua_dest']['Complex'], 
+                    s11_data['aire']['Complex'], 
+                    s11_data['short']['Complex']
+                    )
     if plot_er:
         utl.plot_er_list(
             frecs,
