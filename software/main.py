@@ -46,10 +46,10 @@ def parse_arguments():
 # ============================================================================
 
 def main():
-    plot_er     = False
+    plot_er     = True
     plot_s11    = False
-    save_s11    = True
-    save_er     = True
+    save_s11    = False
+    save_er     = False
 
     args = parse_arguments()
 
@@ -332,13 +332,7 @@ def main():
     # ============================================================================
     # Gráficos de er
     # ============================================================================
-    er_alc_isp = dp.get_er_DUTm (
-                    frecs,
-                    s11_data['alc_isp']['Complex'], 
-                    s11_data['agua_dest']['Complex'], 
-                    s11_data['aire']['Complex'], 
-                    s11_data['short']['Complex']
-                    )
+
     if plot_er:
         utl.plot_er_list(
             frecs,
