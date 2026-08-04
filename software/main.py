@@ -3,6 +3,7 @@ from pathlib import Path
 import data_processing as dp
 import utilities as utl
 import modelos as mdls
+import numpy as np
 
 
 def get_s11_references(messurement_path):
@@ -47,9 +48,9 @@ def parse_arguments():
 
 def main():
     plot_er     = True
-    plot_s11    = False
-    save_s11    = False
-    save_er     = False
+    plot_s11    = True
+    save_s11    = True
+    save_er     = True
 
     args = parse_arguments()
 
@@ -93,6 +94,9 @@ def main():
         "sample": dp.vna_proc_file(sources_files["sample"]),
     }
 
+      
+    #s11_data['aire']['Complex'] = -np.real(s11_data['aire']['Complex']) + 1j * np.imag(s11_data['aire']['Complex'])
+    #s11_data['aire']['Complex'] = -s11_data['aire']['Complex']
     s11_references = get_s11_references(reference_path)
     
     # ============================================================================
@@ -109,6 +113,7 @@ def main():
                 s11_data['aire']['Complex'], 
                 s11_data['short']['Complex']
                 )
+    
     er_alc_isp = dp.get_er_DUTm (
                 frecs,
                 s11_data['alc_isp']['Complex'], 
@@ -334,6 +339,7 @@ def main():
     # ============================================================================
 
     if plot_er:
+        """
         utl.plot_er_list(
             frecs,
             [
@@ -344,6 +350,7 @@ def main():
             "Er Agua",
             result_path / "er_agua.png",
         )
+        """
 
         utl.plot_er_list(
             frecs,
@@ -359,7 +366,7 @@ def main():
         utl.plot_er_list(
             frecs,
             [
-                #{"name": "MUT simulado", "er": er_sample},
+                #{"name": "MUT simulado", "er": er_sample_cal2},
                 {"name": "MUT calibrado", "er": er_sample_cal},
                 #{"name": "MUT de referencia", "er": er_sample_ref},
                 {"name": "MUT de referencia calibrado", "er": er_sample_cal_ref},

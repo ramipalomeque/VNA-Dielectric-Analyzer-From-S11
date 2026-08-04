@@ -23,7 +23,8 @@ def read_cst_parameters(file_path):
 
 
 #folder = Path(r"D:\VNA-Dielectric-Analyzer-From-S11\measurements\Simulaciones_CST\Simulacion_Acohol_Isopropilico")
-folder = Path(r"D:\VNA-Dielectric-Analyzer-From-S11\measurements\Simulaciones_CST\Simulacion_Agua_Destialada")
+#folder = Path(r"D:\VNA-Dielectric-Analyzer-From-S11\measurements\Simulaciones_CST\Simulacion_Agua_Destialada")
+folder = Path(r"D:\VNA-Dielectric-Analyzer-From-S11\measurements\Simulaciones_CST\Simulacion_Vacio")
 s11s = []
 frecs = None
 

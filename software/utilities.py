@@ -170,30 +170,33 @@ def plot_s11(frecs, s11, title, output_file):
 def plot_er_list(frecs, ers, title, output_file = None):
     frecs_MHz = frecs / 1e6
 
-    plt.figure(figsize=(16, 9), constrained_layout=True)
+    fig, (ax_real, ax_imag) = plt.subplots(2, 1, figsize=(16, 9), sharex=True, constrained_layout=True)
     manager = plt.get_current_fig_manager()
-    manager.window.state('zoomed')  
+    manager.window.state('zoomed')
 
     for er in ers:
-        line, = plt.plot(frecs_MHz, np.real(er["er"]), label=f'{er["name"]} - Real')
-        plt.plot(frecs_MHz, np.imag(er["er"]),"--", color=line.get_color(), label=f'{er["name"]} - Imaginaria')
+        line, = ax_real.plot(frecs_MHz, np.real(er["er"]), label=er["name"])
+        ax_imag.plot(frecs_MHz, np.imag(er["er"]), color=line.get_color(), label=er["name"])
 
-    plt.title(title)
-    plt.xlabel('Frecuencia (MHz)')
-    plt.ylabel('Er')
 
-    ax = plt.gca()
-    plt.xscale('log')
-    ax.xaxis.set_major_formatter(ScalarFormatter())
+    fig.suptitle(title)
+    ax_real.set_title("Parte Real")
+    ax_real.set_ylabel("Re{er}")  
+    ax_real.set_xscale("log")
+    ax_real.xaxis.set_major_formatter(ScalarFormatter())
+    ax_real.tick_params(axis='x', which='both', labelbottom=True)
+    ax_real.grid(True, which="major", linewidth=1)
+    ax_real.grid(True, which="minor", linewidth=0.4)
+    ax_real.legend(loc="upper left", bbox_to_anchor=(1.02, 1), ncol=1, fontsize=12)
 
-    plt.legend(
-            loc="upper left",
-            bbox_to_anchor=(1.02, 1),
-            ncol=1,
-            fontsize=12
-        )
-    plt.grid(True, which='major', linewidth=1)
-    plt.grid(True, which='minor', linewidth=0.4)
+    ax_imag.set_title("Parte Imaginaria")
+    ax_imag.set_xlabel("Frecuencia (MHz)")
+    ax_imag.set_ylabel("Im{er}")
+    ax_imag.set_xscale("log")
+    ax_imag.xaxis.set_major_formatter(ScalarFormatter())
+    ax_imag.grid(True, which="major", linewidth=1)
+    ax_imag.grid(True, which="minor", linewidth=0.4)
+    ax_imag.legend(loc="upper left", bbox_to_anchor=(1.02, 1), ncol=1, fontsize=12)
 
     if output_file is not None:
         plt.savefig(output_file, dpi=300, bbox_inches='tight') 
@@ -220,34 +223,37 @@ def plot_er_list(frecs, ers, title, output_file = None):
 #
 # @return None.
 ##
-def plot_s11_list(frecs, s11s, title, output_file = None):
+def plot_s11_list(frecs, s11s, title, output_file=None):
+
     frecs_MHz = frecs / 1e6
 
-    plt.figure(figsize=(16, 9), constrained_layout=True)
+    fig, (ax_real, ax_imag) = plt.subplots(2, 1, figsize=(16, 9), sharex=True, constrained_layout=True)
+
     manager = plt.get_current_fig_manager()
     manager.window.state('zoomed')
 
     for s11 in s11s:
-        line, = plt.plot(frecs_MHz, np.real(s11["s11"]), label=f'{s11["name"]} - Real')
-        plt.plot(frecs_MHz, np.imag(s11["s11"]),"--", color=line.get_color(), label=f'{s11["name"]} - Imaginaria')
+        line, = ax_real.plot(frecs_MHz, np.real(s11["s11"]), label=s11["name"])
+        ax_imag.plot(frecs_MHz, np.imag(s11["s11"]), color=line.get_color(), label=s11["name"])
 
-    plt.title(title)
-    plt.xlabel('Frecuencia (MHz)')
-    plt.ylabel('S11')
+    fig.suptitle(title)
+    ax_real.set_title("Parte Real")
+    ax_real.set_ylabel("Re{S11}")  
+    ax_real.set_xscale("log")
+    ax_real.xaxis.set_major_formatter(ScalarFormatter())
+    ax_real.tick_params(axis='x', which='both', labelbottom=True)
+    ax_real.grid(True, which="major", linewidth=1)
+    ax_real.grid(True, which="minor", linewidth=0.4)
+    ax_real.legend(loc="upper left", bbox_to_anchor=(1.02, 1), ncol=1, fontsize=12)
 
-    ax = plt.gca()
-    plt.xscale('log')
-    ax.xaxis.set_major_formatter(ScalarFormatter())
-
-    plt.legend(
-        loc="upper left",
-        bbox_to_anchor=(1.02, 1),
-        ncol=1,
-        fontsize=12
-    )
-    plt.grid(True, which='major', linewidth=1)
-    plt.grid(True, which='minor', linewidth=0.4)
-   
+    ax_imag.set_title("Parte Imaginaria")
+    ax_imag.set_xlabel("Frecuencia (MHz)")
+    ax_imag.set_ylabel("Im{S11}")
+    ax_imag.set_xscale("log")
+    ax_imag.xaxis.set_major_formatter(ScalarFormatter())
+    ax_imag.grid(True, which="major", linewidth=1)
+    ax_imag.grid(True, which="minor", linewidth=0.4)
+    ax_imag.legend(loc="upper left", bbox_to_anchor=(1.02, 1), ncol=1, fontsize=12)
 
     if output_file is not None:
         plt.savefig(output_file, dpi=300, bbox_inches='tight')
