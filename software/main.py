@@ -47,10 +47,12 @@ def parse_arguments():
 # ============================================================================
 
 def main():
-    plot_er     = True
-    plot_s11    = True
-    save_s11    = True
-    save_er     = True
+    plot_er     = False
+    plot_s11    = False
+    plot_s11_MF = True
+    save_s11    = False
+    save_er     = False
+
 
     args = parse_arguments()
 
@@ -334,6 +336,61 @@ def main():
             result_path / "s11_mut.png",
         )
 
+    if plot_s11_MF:
+  # Comparacion de S11 de agua y agua de referencia
+         utl.plot_s11_db_phase_list(
+             frecs,
+             [
+                 {"name": "Agua simulado", "s11": s11_data["agua_dest"]["Complex"]},
+                 {"name": "Agua de referencia", "s11": s11_references["agua_dest"]["Complex"]},
+             ],
+             "S11 Agua",
+             result_path / "s11_agua_MF.png",
+         )
+ 
+         # Comparacion de S11 de aire y aire de referencia
+         utl.plot_s11_db_phase_list(
+             frecs,
+             [
+                 {"name": "Aire simulado", "s11": s11_data["aire"]["Complex"]},
+                 {"name": "Aire de referencia", "s11": s11_references["aire"]["Complex"]},
+             ],
+             "S11 Aire",
+             result_path / "s11_aire_MF.png",
+         )
+ 
+         # Comparacion de S11 de corto y corto de referencia
+         utl.plot_s11_db_phase_list(
+             frecs,
+             [
+                 {"name":"short simulado", "s11": s11_data["short"]["Complex"]},
+                 {"name":"short de referencia", "s11": s11_references["short"]["Complex"]},
+             ],
+             "S11 Short",
+             result_path / "s11_short_MF.png",
+         )
+ 
+         # Comparacion de S11 de alcohol isopropilico y alcohol isopropilico de referencia
+         utl.plot_s11_db_phase_list(
+             frecs,
+             [
+                 {"name": "Alcohol isopropilico simulado", "s11": s11_data["alc_isp"]["Complex"]},
+                 {"name": "Alcohol isopropilico de referencia", "s11": s11_references["alc_isp"]["Complex"]},
+             ],
+             "S11 Alcohol Isopropilico",
+             result_path / "s11_alc_isp_MF.png",
+         )
+ 
+         # Comparacion de S11 de alcohol etilico y alcohol etilico de referencia
+         utl.plot_s11_db_phase_list(
+             frecs,
+             [
+                 {"name": "Alcohol etilico simulado", "s11": s11_data["sample"]["Complex"]},
+                 {"name": "Alcohol etilico de referencia", "s11": s11_references["alc_eth"]["Complex"]},
+             ],
+             "S11 MUT",
+             result_path / "s11_mut_MF.png",
+         )       
     # ============================================================================
     # Gráficos de er
     # ============================================================================

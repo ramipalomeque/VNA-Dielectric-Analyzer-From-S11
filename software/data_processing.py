@@ -387,3 +387,4 @@ def get_er_setup(frecs, S11_medido, s11_agua, s11_abierto, s11_isopropilico, s11
         er[n] = sol[0] + 1j * sol[1]
 
     return er
+

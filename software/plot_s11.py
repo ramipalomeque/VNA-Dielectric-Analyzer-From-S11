@@ -24,7 +24,9 @@ def read_cst_parameters(file_path):
 
 #folder = Path(r"D:\VNA-Dielectric-Analyzer-From-S11\measurements\Simulaciones_CST\Simulacion_Acohol_Isopropilico")
 #folder = Path(r"D:\VNA-Dielectric-Analyzer-From-S11\measurements\Simulaciones_CST\Simulacion_Agua_Destialada")
-folder = Path(r"D:\VNA-Dielectric-Analyzer-From-S11\measurements\Simulaciones_CST\Simulacion_Vacio")
+folder = Path(r"D:\VNA-Dielectric-Analyzer-From-S11\measurements\Simulaciones_CST\Simulacion_04082026")
+file_ref = Path(r"D:\VNA-Dielectric-Analyzer-From-S11\measurements\24-06-26\AGUA DEST.s1p")
+file_ref2 = Path(r"D:\VNA-Dielectric-Analyzer-From-S11\measurements\02-08-26\Sonda-Coaxial_21mm_DisifixB_v2_Agua_Dest.s1p" )
 s11s = []
 frecs = None
 
@@ -41,12 +43,22 @@ for file in folder.glob("*.s1p"):
         "s11": data["Complex"]
     })
 
+s11s.append({
+    "name": "referencia",
+    "s11": dp.vna_proc_file(file_ref)["Complex"]
+})
+
+
 
 utl.plot_s11_list(
     frecs,
     s11s,
-    "S11 - Simulaciones " + folder.name.replace("Simulaciones_", ""),
+    #"S11 - Simulaciones " + folder.name.replace("Simulaciones_", ""),
+    "S11 - Simulaciones agua destilada",
     folder / "s11_comparacion.png"
 )
+
+
+
 
 utl.show_plots()

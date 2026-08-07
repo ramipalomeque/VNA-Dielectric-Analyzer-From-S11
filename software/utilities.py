@@ -145,6 +145,41 @@ def plot_s11(frecs, s11, title, output_file):
 
     plt.savefig(output_file, dpi=300, bbox_inches='tight')
 
+
+def plot_s11_db_phase(frecs, s11, title, output_file=None):
+
+    frecs_MHz = frecs / 1e6
+    modulo_db = 20 * np.log10(np.abs(s11))
+    fase_deg = np.angle(s11, deg=True)
+
+    fig, (ax_mod, ax_phase) = plt.subplots(2, 1, figsize=(16, 9))
+
+    manager = plt.get_current_fig_manager()
+    manager.window.state('zoomed')
+
+    fig.suptitle(title)
+    ax_mod.plot(frecs_MHz, modulo_db)
+    ax_mod.set_title("Módulo")
+    #ax_mod.set_xlabel("Frecuencia (MHz)")
+    ax_mod.set_ylabel("|S11| (dB)")
+    ax_mod.set_xscale("log")
+    ax_mod.xaxis.set_major_formatter(ScalarFormatter())
+    ax_mod.grid(True, which="major", linewidth=1)
+    ax_mod.grid(True, which="minor", linewidth=0.4)
+
+    ax_phase.plot(frecs_MHz, fase_deg)
+    ax_phase.set_title("Fase")
+    ax_phase.set_xlabel("Frecuencia (MHz)")
+    ax_phase.set_ylabel("Fase (°)")
+    ax_phase.set_xscale("log")
+    ax_phase.xaxis.set_major_formatter(ScalarFormatter())
+    ax_phase.grid(True, which="major", linewidth=1)
+    ax_phase.grid(True, which="minor", linewidth=0.4)
+
+    fig.tight_layout()
+
+    if output_file is not None:
+        plt.savefig(output_file, dpi=300, bbox_inches='tight')
 ##
 # @brief Grafica el parámetro S11 de una lista de mediciones.
 #
@@ -253,10 +288,50 @@ def plot_s11_list(frecs, s11s, title, output_file=None):
     ax_imag.xaxis.set_major_formatter(ScalarFormatter())
     ax_imag.grid(True, which="major", linewidth=1)
     ax_imag.grid(True, which="minor", linewidth=0.4)
-    ax_imag.legend(loc="upper left", bbox_to_anchor=(1.02, 1), ncol=1, fontsize=12)
+    #ax_imag.legend(loc="upper left", bbox_to_anchor=(1.02, 1), ncol=1, fontsize=12)
 
     if output_file is not None:
         plt.savefig(output_file, dpi=300, bbox_inches='tight')
 
+
+def plot_s11_db_phase_list(frecs, s11s, title, output_file=None):
+
+    frecs_MHz = frecs / 1e6
+
+    fig, (ax_mod, ax_phase) = plt.subplots(2, 1, figsize=(16, 9), sharex=True, constrained_layout=True)
+
+    manager = plt.get_current_fig_manager()
+    manager.window.state('zoomed')
+
+    fig.suptitle(title)
+
+    for s11 in s11s:
+        modulo_db = 20 * np.log10(np.abs(s11["s11"]))
+        fase_deg = np.angle(s11["s11"], deg=True)
+
+        line, = ax_mod.plot(frecs_MHz, modulo_db, label=s11["name"])
+        ax_phase.plot(frecs_MHz, fase_deg, color=line.get_color(), label=s11["name"])
+        
+
+    ax_mod.set_title("Módulo")
+    ax_mod.set_xlabel("Frecuencia (MHz)")
+    ax_mod.set_ylabel("|S11| (dB)")
+    ax_mod.set_xscale("log")
+    ax_mod.xaxis.set_major_formatter(ScalarFormatter())
+    ax_mod.grid(True, which="major", linewidth=1)
+    ax_mod.grid(True, which="minor", linewidth=0.4)
+    ax_mod.legend(loc="upper left", bbox_to_anchor=(1.02, 1), ncol=1, fontsize=12)
+
+    ax_phase.set_title("Fase")
+    ax_phase.set_xlabel("Frecuencia (MHz)")
+    ax_phase.set_ylabel("Fase (°)")
+    ax_phase.set_xscale("log")
+    ax_phase.xaxis.set_major_formatter(ScalarFormatter())
+    ax_phase.grid(True, which="major", linewidth=1)
+    ax_phase.grid(True, which="minor", linewidth=0.4)
+    ax_phase.legend(loc="upper left", bbox_to_anchor=(1.02, 1), ncol=1, fontsize=12)
+
+    if output_file is not None:
+        plt.savefig(output_file, dpi=300, bbox_inches="tight")
 def show_plots():
     plt.show()
